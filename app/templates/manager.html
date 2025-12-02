@@ -6,14 +6,14 @@
 <!-- Header -->
 <header class="header manager-header">
     <div class="header-inner">
-        <a href="{{ url_for('home') }}" class="logo">
+        <a href="{{ url_for('main.home') }}" class="logo">
             <div class="logo-icon">🍗</div>
             <span>Manager Dashboard</span>
         </a>
         <nav class="nav">
             <span style="color: rgba(255,255,255,0.7);">{{ current_user.name or current_user.email }} ({{ current_user.role }})</span>
-            <a href="{{ url_for('home') }}">View Store</a>
-            <a href="{{ url_for('logout') }}">Logout</a>
+            <a href="{{ url_for('main.home') }}">View Store</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
         </nav>
     </div>
 </header>
@@ -69,22 +69,22 @@
                     
                     <div class="order-actions">
                         {% if order.status in ['pending', 'paid'] %}
-                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
                             <button type="submit" name="status" value="preparing" class="btn-preparing">Start Preparing</button>
                         </form>
                         {% endif %}
                         {% if order.status == 'preparing' %}
-                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
                             <button type="submit" name="status" value="ready" class="btn-ready">Mark Ready</button>
                         </form>
                         {% endif %}
                         {% if order.status == 'ready' %}
-                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
                             <button type="submit" name="status" value="completed" class="btn-complete">Complete</button>
                         </form>
                         {% endif %}
                         {% if order.status not in ['completed', 'cancelled'] %}
-                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
                             <button type="submit" name="status" value="cancelled" class="btn-cancel">Cancel</button>
                         </form>
                         {% endif %}
@@ -101,4 +101,3 @@
     </div>
 </div>
 {% endblock %}
-

@@ -1,9 +1,13 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import UserMixin
 from datetime import datetime
 import bcrypt
+from flask_login import UserMixin
+from app import db, login_manager
 
-db = SQLAlchemy()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -11,18 +15,24 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(100))
     phone = db.Column(db.String(20))
-    role = db.Column(db.String(20), default='customer')  # customer, staff, manager, admin
+    role = db.Column(db.String(20), default='customer')
     email_verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+
     orders = db.relationship('Order', backref='user', lazy=True)
-    
+
     def set_password(self, password):
-        self.password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    
+        self.password_hash = bcrypt.hashpw(
+            password.encode('utf-8'), 
+            bcrypt.gensalt()
+        ).decode('utf-8')
+
     def check_password(self, password):
-        return bcrypt.checkpw(password.encode('utf-8'), self.password_hash.encode('utf-8'))
-    
+        return bcrypt.checkpw(
+            password.encode('utf-8'), 
+            self.password_hash.encode('utf-8')
+        )
+
     def is_staff(self):
         return self.role in ['staff', 'manager', 'admin']
 
@@ -70,7 +80,7 @@ class Order(db.Model):
     payment_status = db.Column(db.String(20))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+
     items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
 
 

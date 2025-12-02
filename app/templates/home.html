@@ -6,14 +6,14 @@
 <!-- Header -->
 <header class="header">
     <div class="header-inner">
-        <a href="{{ url_for('home') }}" class="logo">
+        <a href="{{ url_for('main.home') }}" class="logo">
             <div class="logo-icon">🍗</div>
             <span>Crispy Clucker's</span>
         </a>
         <nav class="nav">
-            <a href="{{ url_for('home') }}">Home</a>
-            <a href="{{ url_for('menu') }}">Menu</a>
-            <a href="{{ url_for('view_cart') }}">
+            <a href="{{ url_for('main.home') }}">Home</a>
+            <a href="{{ url_for('main.menu') }}">Menu</a>
+            <a href="{{ url_for('cart.view_cart') }}">
                 Cart
                 {% if cart_count > 0 %}
                 <span class="cart-badge">{{ cart_count }}</span>
@@ -21,12 +21,12 @@
             </a>
             {% if current_user.is_authenticated %}
                 {% if current_user.is_staff() %}
-                <a href="{{ url_for('manager_dashboard') }}">Dashboard</a>
+                <a href="{{ url_for('manager.dashboard') }}">Dashboard</a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('signup') }}" class="btn-white">Sign Up</a>
+                <a href="{{ url_for('auth.login') }}">Login</a>
+                <a href="{{ url_for('auth.signup') }}" class="btn-white">Sign Up</a>
             {% endif %}
         </nav>
     </div>
@@ -40,8 +40,8 @@
             <h1>Crispy Clucker's Food Truck</h1>
             <p>Craving crispy chicken, wings, or a quick combo? Order online and pick up at <strong>GSU Campus</strong>. We keep track of allergies so your food is both delicious and safe.</p>
             <div class="hero-buttons">
-                <a href="{{ url_for('menu') }}" class="btn btn-ghost">Order Now</a>
-                <a href="{{ url_for('view_cart') }}" class="btn btn-outline-white">View Cart</a>
+                <a href="{{ url_for('main.menu') }}" class="btn btn-ghost">Order Now</a>
+                <a href="{{ url_for('cart.view_cart') }}" class="btn btn-outline-white">View Cart</a>
             </div>
             <p class="hero-stats">Staff in system: {{ staff_count }} · Orders today: {{ order_count }}</p>
         </div>
@@ -63,7 +63,7 @@
             <h2 class="section-title">🔥 Popular Picks</h2>
             <p class="section-subtitle">Customer favorites from our food truck menu.</p>
         </div>
-        <a href="{{ url_for('menu') }}" class="btn btn-outline-red">See Full Menu →</a>
+        <a href="{{ url_for('main.menu') }}" class="btn btn-outline-red">See Full Menu →</a>
     </div>
     <div class="menu-grid">
         {% for item in popular_items %}
@@ -97,11 +97,11 @@
         </div>
     </div>
     <div class="category-tabs">
-        <a href="{{ url_for('menu', category='all') }}" class="category-tab active">All</a>
-        <a href="{{ url_for('menu', category='combos') }}" class="category-tab">Combos</a>
-        <a href="{{ url_for('menu', category='chicken') }}" class="category-tab">Chicken</a>
-        <a href="{{ url_for('menu', category='sides') }}" class="category-tab">Sides</a>
-        <a href="{{ url_for('menu', category='drinks') }}" class="category-tab">Drinks</a>
+        <a href="{{ url_for('main.menu', category='all') }}" class="category-tab active">All</a>
+        <a href="{{ url_for('main.menu', category='combos') }}" class="category-tab">Combos</a>
+        <a href="{{ url_for('main.menu', category='chicken') }}" class="category-tab">Chicken</a>
+        <a href="{{ url_for('main.menu', category='sides') }}" class="category-tab">Sides</a>
+        <a href="{{ url_for('main.menu', category='drinks') }}" class="category-tab">Drinks</a>
     </div>
     <div class="menu-grid">
         {% for item in menu_items[:8] %}
@@ -147,4 +147,3 @@
     </div>
 </footer>
 {% endblock %}
-
