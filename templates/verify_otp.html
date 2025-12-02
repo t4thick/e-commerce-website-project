@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify OTP - Crispy Clucker's{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <a href="{{ url_for('home') }}" class="logo">
+            <div class="logo-icon">🍗</div>
+            <span>Crispy Clucker's</span>
+        </a>
+        <nav class="nav">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('menu') }}">Menu</a>
+            <a href="{{ url_for('login') }}">Login</a>
+        </nav>
+    </div>
+</header>
+
+<div class="auth-page">
+    <div class="auth-form-side">
+        <div class="auth-form-container">
+            <h1>Verify your identity</h1>
+            <p>Enter the 6-digit code sent to your email.</p>
+            
+            {% if dev_otp %}
+            <div class="dev-otp-box">
+                <p>🔧 Dev Mode - Your OTP Code:</p>
+                <div class="otp-code">{{ dev_otp }}</div>
+            </div>
+            {% endif %}
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label>Verification Code</label>
+                    <input type="text" name="otp" class="otp-input" placeholder="123456" maxlength="6" required>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="submit" class="btn btn-red">Verify</button>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-red">← Back</a>
+                </div>
+            </form>
+            
+            <p style="margin-top: 2rem; font-size: 0.875rem; color: var(--gray);">
+                Didn't receive a code? <a href="{{ url_for('login') }}" style="color: var(--red); font-weight: 600;">Try again</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="auth-info-side">
+        <div class="auth-info-content">
+            <h2>Secure Login</h2>
+            <ul>
+                <li>Two-factor authentication</li>
+                <li>OTP expires in 10 minutes</li>
+                <li>Protects your account</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

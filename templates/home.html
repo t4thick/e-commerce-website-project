@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+
+{% block title %}Crispy Clucker's - Fresh Fried Chicken{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <a href="{{ url_for('home') }}" class="logo">
+            <div class="logo-icon">🍗</div>
+            <span>Crispy Clucker's</span>
+        </a>
+        <nav class="nav">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('menu') }}">Menu</a>
+            <a href="{{ url_for('view_cart') }}">
+                Cart
+                {% if cart_count > 0 %}
+                <span class="cart-badge">{{ cart_count }}</span>
+                {% endif %}
+            </a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.is_staff() %}
+                <a href="{{ url_for('manager_dashboard') }}">Dashboard</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('signup') }}" class="btn-white">Sign Up</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-inner">
+        <div class="hero-content">
+            <p class="hero-label">Hot & Fresh On Campus</p>
+            <h1>Crispy Clucker's Food Truck</h1>
+            <p>Craving crispy chicken, wings, or a quick combo? Order online and pick up at <strong>GSU Campus</strong>. We keep track of allergies so your food is both delicious and safe.</p>
+            <div class="hero-buttons">
+                <a href="{{ url_for('menu') }}" class="btn btn-ghost">Order Now</a>
+                <a href="{{ url_for('view_cart') }}" class="btn btn-outline-white">View Cart</a>
+            </div>
+            <p class="hero-stats">Staff in system: {{ staff_count }} · Orders today: {{ order_count }}</p>
+        </div>
+        <div class="hero-card">
+            <div class="hero-card-content">
+                <div class="hero-card-logo">🍗</div>
+                <h3>Crispy Clucker's</h3>
+                <p>Food Truck</p>
+                <p class="tagline">Fresh. Fast. Delicious.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Popular Picks -->
+<section class="section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">🔥 Popular Picks</h2>
+            <p class="section-subtitle">Customer favorites from our food truck menu.</p>
+        </div>
+        <a href="{{ url_for('menu') }}" class="btn btn-outline-red">See Full Menu →</a>
+    </div>
+    <div class="menu-grid">
+        {% for item in popular_items %}
+        <div class="menu-card">
+            <div class="menu-card-image">
+                <img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">
+                {% if item.spicy %}
+                <span class="menu-card-badge">🔥 Spicy</span>
+                {% endif %}
+            </div>
+            <div class="menu-card-content">
+                <p class="menu-card-category">{{ item.category }}</p>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.description }}</p>
+                <div class="menu-card-footer">
+                    <span class="menu-card-price">${{ "%.2f"|format(item.price) }}</span>
+                    <button class="btn-add" onclick="addToCart({{ item.id }})">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Full Menu Preview -->
+<section class="section" id="menu">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Full Menu</h2>
+            <p class="section-subtitle">Everything we serve, made fresh to order.</p>
+        </div>
+    </div>
+    <div class="category-tabs">
+        <a href="{{ url_for('menu', category='all') }}" class="category-tab active">All</a>
+        <a href="{{ url_for('menu', category='combos') }}" class="category-tab">Combos</a>
+        <a href="{{ url_for('menu', category='chicken') }}" class="category-tab">Chicken</a>
+        <a href="{{ url_for('menu', category='sides') }}" class="category-tab">Sides</a>
+        <a href="{{ url_for('menu', category='drinks') }}" class="category-tab">Drinks</a>
+    </div>
+    <div class="menu-grid">
+        {% for item in menu_items[:8] %}
+        <div class="menu-card">
+            <div class="menu-card-image">
+                <img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">
+                {% if item.spicy %}
+                <span class="menu-card-badge">🔥 Spicy</span>
+                {% endif %}
+            </div>
+            <div class="menu-card-content">
+                <p class="menu-card-category">{{ item.category }}</p>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.description }}</p>
+                <div class="menu-card-footer">
+                    <span class="menu-card-price">${{ "%.2f"|format(item.price) }}</span>
+                    <button class="btn-add" onclick="addToCart({{ item.id }})">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div>
+            <h4>🍗 Crispy Clucker's</h4>
+            <p>Serving the best fried chicken on campus since 2020.</p>
+        </div>
+        <div>
+            <h4>Hours</h4>
+            <p>Mon - Fri: 11am - 9pm<br>Sat - Sun: 12pm - 8pm</p>
+        </div>
+        <div>
+            <h4>Location</h4>
+            <p>GSU Campus<br>Main Street Food Court</p>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        © 2024 Crispy Clucker's Food Truck. All rights reserved.
+    </div>
+</footer>
+{% endblock %}
+

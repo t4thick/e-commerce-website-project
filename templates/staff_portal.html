@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Staff Portal - Crispy Clucker's{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="header">
+    <div class="header-inner">
+        <a href="{{ url_for('home') }}" class="logo">
+            <div class="logo-icon">🍗</div>
+            <span>Crispy Clucker's</span>
+        </a>
+        <nav class="nav">
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </div>
+</header>
+
+<div class="auth-page">
+    <div class="auth-form-side">
+        <div class="auth-form-container">
+            <h1>Staff Access</h1>
+            <p>Enter your staff code to access the manager dashboard.</p>
+            
+            <form method="POST">
+                <div class="form-group">
+                    <label>Staff Code</label>
+                    <input type="text" name="code" class="staff-code-input" placeholder="Enter staff code" 
+                           style="text-transform: uppercase; text-align: center; font-size: 1.25rem; letter-spacing: 0.1em;" required>
+                    <p style="font-size: 0.75rem; color: var(--gray); margin-top: 0.5rem; text-align: center;">
+                        Ask your manager for the staff access code
+                    </p>
+                </div>
+                
+                <button type="submit" class="btn btn-red" style="width: 100%;">Activate Staff Access 🔓</button>
+            </form>
+            
+            <p style="margin-top: 2rem; text-align: center;">
+                <a href="{{ url_for('home') }}" style="color: var(--gray); font-size: 0.875rem;">← Back to menu</a>
+            </p>
+        </div>
+    </div>
+    
+    <div class="auth-info-side">
+        <div class="auth-info-content">
+            <h2>Staff Benefits</h2>
+            <ul>
+                <li>Access manager dashboard</li>
+                <li>View and manage orders</li>
+                <li>Track sales analytics</li>
+            </ul>
+            <p>Default codes:<br><strong>ADMIN2024</strong> • <strong>MANAGER2024</strong> • <strong>STAFF2024</strong></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

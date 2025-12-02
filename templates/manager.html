@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Manager Dashboard - Crispy Clucker's{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<header class="header manager-header">
+    <div class="header-inner">
+        <a href="{{ url_for('home') }}" class="logo">
+            <div class="logo-icon">🍗</div>
+            <span>Manager Dashboard</span>
+        </a>
+        <nav class="nav">
+            <span style="color: rgba(255,255,255,0.7);">{{ current_user.name or current_user.email }} ({{ current_user.role }})</span>
+            <a href="{{ url_for('home') }}">View Store</a>
+            <a href="{{ url_for('logout') }}">Logout</a>
+        </nav>
+    </div>
+</header>
+
+<div style="background: var(--light-gray); min-height: calc(100vh - 64px); padding: 1.5rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="number">{{ stats.total_orders }}</div>
+                <div class="label">Total Orders</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" style="color: #F59E0B;">{{ stats.pending }}</div>
+                <div class="label">Pending</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" style="color: #F97316;">{{ stats.preparing }}</div>
+                <div class="label">Preparing</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" style="color: #10B981;">{{ stats.ready }}</div>
+                <div class="label">Ready</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" style="color: var(--red);">${{ "%.2f"|format(stats.revenue) }}</div>
+                <div class="label">Revenue</div>
+            </div>
+        </div>
+        
+        <!-- Orders -->
+        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Recent Orders</h2>
+        
+        <div class="orders-list">
+            {% if orders %}
+                {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <div>
+                            <span class="order-number">#{{ order.order_number }}</span>
+                            <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
+                        </div>
+                        <span class="order-total">${{ "%.2f"|format(order.total) }}</span>
+                    </div>
+                    <p class="order-customer">{{ order.customer_name }} {% if order.customer_phone %}• {{ order.customer_phone }}{% endif %}</p>
+                    <p style="color: var(--gray); font-size: 0.75rem;">{{ order.created_at.strftime('%b %d, %Y %I:%M %p') }}</p>
+                    
+                    <div class="order-items">
+                        {% for item in order.items %}
+                        <span>{{ item.name }} ×{{ item.quantity }}{% if not loop.last %}, {% endif %}</span>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="order-actions">
+                        {% if order.status in ['pending', 'paid'] %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                            <button type="submit" name="status" value="preparing" class="btn-preparing">Start Preparing</button>
+                        </form>
+                        {% endif %}
+                        {% if order.status == 'preparing' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                            <button type="submit" name="status" value="ready" class="btn-ready">Mark Ready</button>
+                        </form>
+                        {% endif %}
+                        {% if order.status == 'ready' %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                            <button type="submit" name="status" value="completed" class="btn-complete">Complete</button>
+                        </form>
+                        {% endif %}
+                        {% if order.status not in ['completed', 'cancelled'] %}
+                        <form method="POST" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display: inline;">
+                            <button type="submit" name="status" value="cancelled" class="btn-cancel">Cancel</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="text-align: center; padding: 3rem;">
+                    <p style="font-size: 2rem; margin-bottom: 0.5rem;">📭</p>
+                    <p style="color: var(--gray);">No orders yet</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
