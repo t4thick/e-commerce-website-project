@@ -1,103 +1,1455 @@
 {% extends 'base.html' %}
 
-{% block title %}Manager Dashboard - Crispy Clucker's{% endblock %}
+{% block title %}Dashboard — Crispy Clucker's{% endblock %}
 
 {% block content %}
-<!-- Header -->
-<header class="header manager-header">
-    <div class="header-inner">
-        <a href="{{ url_for('main.home') }}" class="logo">
-            <div class="logo-icon">🍗</div>
-            <span>Manager Dashboard</span>
-        </a>
-        <nav class="nav">
-            <span style="color: rgba(255,255,255,0.7);">{{ current_user.name or current_user.email }} ({{ current_user.role }})</span>
-            <a href="{{ url_for('main.home') }}">View Store</a>
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
-        </nav>
-    </div>
-</header>
-
-<div style="background: var(--light-gray); min-height: calc(100vh - 64px); padding: 1.5rem;">
-    <div style="max-width: 1200px; margin: 0 auto;">
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="number">{{ stats.total_orders }}</div>
-                <div class="label">Total Orders</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="color: #F59E0B;">{{ stats.pending }}</div>
-                <div class="label">Pending</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="color: #F97316;">{{ stats.preparing }}</div>
-                <div class="label">Preparing</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="color: #10B981;">{{ stats.ready }}</div>
-                <div class="label">Ready</div>
-            </div>
-            <div class="stat-card">
-                <div class="number" style="color: var(--red);">${{ "%.2f"|format(stats.revenue) }}</div>
-                <div class="label">Revenue</div>
+<div class="dash-app">
+    <!-- Sidebar -->
+    <aside class="dash-sidebar">
+        <div class="brand">
+            <div class="brand-mark">CC</div>
+            <div class="brand-text">
+                <span class="brand-name">Crispy Clucker's</span>
+                <span class="brand-tag">Operations</span>
             </div>
         </div>
-        
-        <!-- Orders -->
-        <h2 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem;">Recent Orders</h2>
-        
-        <div class="orders-list">
-            {% if orders %}
-                {% for order in orders %}
-                <div class="order-card">
-                    <div class="order-header">
-                        <div>
-                            <span class="order-number">#{{ order.order_number }}</span>
-                            <span class="status-badge status-{{ order.status }}">{{ order.status }}</span>
-                        </div>
-                        <span class="order-total">${{ "%.2f"|format(order.total) }}</span>
-                    </div>
-                    <p class="order-customer">{{ order.customer_name }} {% if order.customer_phone %}• {{ order.customer_phone }}{% endif %}</p>
-                    <p style="color: var(--gray); font-size: 0.75rem;">{{ order.created_at.strftime('%b %d, %Y %I:%M %p') }}</p>
-                    
-                    <div class="order-items">
-                        {% for item in order.items %}
-                        <span>{{ item.name }} ×{{ item.quantity }}{% if not loop.last %}, {% endif %}</span>
-                        {% endfor %}
-                    </div>
-                    
-                    <div class="order-actions">
-                        {% if order.status in ['pending', 'paid'] %}
-                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
-                            <button type="submit" name="status" value="preparing" class="btn-preparing">Start Preparing</button>
-                        </form>
-                        {% endif %}
-                        {% if order.status == 'preparing' %}
-                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
-                            <button type="submit" name="status" value="ready" class="btn-ready">Mark Ready</button>
-                        </form>
-                        {% endif %}
-                        {% if order.status == 'ready' %}
-                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
-                            <button type="submit" name="status" value="completed" class="btn-complete">Complete</button>
-                        </form>
-                        {% endif %}
-                        {% if order.status not in ['completed', 'cancelled'] %}
-                        <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" style="display: inline;">
-                            <button type="submit" name="status" value="cancelled" class="btn-cancel">Cancel</button>
-                        </form>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endfor %}
+
+        <nav class="dash-nav">
+            <div class="nav-section">
+                <span class="nav-label">Main</span>
+                <a href="#" class="nav-link active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                        <rect x="9" y="3" width="6" height="4" rx="1"/>
+                        <path d="M9 12h6M9 16h6"/>
+                    </svg>
+                    Orders
+                    {% if stats.pending > 0 %}<span class="nav-count">{{ stats.pending }}</span>{% endif %}
+                </a>
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 20V10M18 20V4M6 20v-4"/>
+                    </svg>
+                    Analytics
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <span class="nav-label">Team</span>
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                    Staff
+                    <span class="nav-count active">{{ active_staff|length }}</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Clock Status -->
+        <div class="clock-module">
+            <div class="clock-header">
+                <span class="clock-label">Time Clock</span>
+                <span class="clock-indicator {{ 'on' if my_clock else 'off' }}"></span>
+            </div>
+            {% if my_clock %}
+            <div class="clock-info">
+                <span class="clock-status">On shift</span>
+                <span class="clock-duration">{{ "%.1f"|format(my_clock.hours_worked) }}h</span>
+            </div>
+            <form method="POST" action="{{ url_for('manager.clock_out') }}">
+                <input type="hidden" name="break_minutes" value="0">
+                <button type="submit" class="clock-btn out">End Shift</button>
+            </form>
             {% else %}
-                <div style="text-align: center; padding: 3rem;">
-                    <p style="font-size: 2rem; margin-bottom: 0.5rem;">📭</p>
-                    <p style="color: var(--gray);">No orders yet</p>
-                </div>
+            <div class="clock-info">
+                <span class="clock-status off">Off shift</span>
+            </div>
+            <form method="POST" action="{{ url_for('manager.clock_in') }}">
+                <button type="submit" class="clock-btn in">Start Shift</button>
+            </form>
             {% endif %}
         </div>
-    </div>
+
+        <!-- User -->
+        <div class="user-module">
+            <div class="user-avatar">{{ (current_user.name or current_user.email)[0]|upper }}</div>
+            <div class="user-details">
+                <span class="user-name">{{ current_user.name or current_user.email.split('@')[0] }}</span>
+                <span class="user-role">{{ current_user.role|title }}</span>
+            </div>
+            <a href="{{ url_for('auth.logout') }}" class="user-logout" title="Sign out">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
+                </svg>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="dash-main">
+        <!-- Top Bar -->
+        <header class="dash-topbar">
+            <div class="topbar-left">
+                <h1 class="page-title">Dashboard</h1>
+                <span class="page-date">{{ now.strftime('%B %d, %Y') }}</span>
+            </div>
+            <div class="topbar-right">
+                <a href="{{ url_for('main.home') }}" class="topbar-btn secondary">View Storefront</a>
+                <button class="topbar-btn primary" onclick="location.reload()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;">
+                        <path d="M23 4v6h-6M1 20v-6h6"/>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+                    </svg>
+                    Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Metrics Row -->
+        <section class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Revenue Today</span>
+                    <span class="metric-badge up">+12%</span>
+                </div>
+                <div class="metric-value">${{ "%.2f"|format(analytics.today_revenue) }}</div>
+                <div class="metric-sub">{{ analytics.today_orders }} orders</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">This Week</span>
+                </div>
+                <div class="metric-value">${{ "%.2f"|format(analytics.week_revenue) }}</div>
+                <div class="metric-sub">{{ analytics.week_orders }} orders</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span class="metric-label">Avg. Order</span>
+                </div>
+                <div class="metric-value">${{ "%.2f"|format(analytics.avg_order_value) }}</div>
+                <div class="metric-sub">per transaction</div>
+            </div>
+            <div class="metric-card highlight">
+                <div class="metric-header">
+                    <span class="metric-label">Active Orders</span>
+                    <span class="pulse-dot"></span>
+                </div>
+                <div class="metric-value">{{ stats.pending + stats.preparing + stats.ready }}</div>
+                <div class="metric-sub">{{ stats.pending }} new · {{ stats.preparing }} prep · {{ stats.ready }} ready</div>
+            </div>
+        </section>
+
+        <!-- Main Grid -->
+        <div class="dash-grid">
+            <!-- Orders Queue -->
+            <section class="card card-orders">
+                <div class="card-header">
+                    <h2 class="card-title">Order Queue</h2>
+                    <div class="card-tabs">
+                        <button class="tab-btn active" data-filter="active">Active</button>
+                        <button class="tab-btn" data-filter="all">All</button>
+                    </div>
+                </div>
+                <div class="orders-list" id="ordersList">
+                    {% for order in active_orders %}
+                    <div class="order-item" data-status="{{ order.status }}">
+                        <div class="order-status-bar status-{{ order.status }}"></div>
+                        <div class="order-content">
+                            <div class="order-row">
+                                <span class="order-id">{{ order.order_number }}</span>
+                                <span class="order-time" data-created="{{ order.created_at.isoformat() }}">
+                                    {{ ((now - order.created_at).seconds // 60) }}m ago
+                                </span>
+                            </div>
+                            <div class="order-row">
+                                <span class="order-name">{{ order.customer_name }}</span>
+                                <span class="order-amount">${{ "%.2f"|format(order.total) }}</span>
+                            </div>
+                            <div class="order-items">
+                                {% for item in order.items %}
+                                <span class="item-tag">{{ item.quantity }}× {{ item.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="order-actions">
+                                {% if order.status in ['pending', 'paid'] %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}">
+                                    <button type="submit" name="status" value="preparing" class="action-btn prepare">Start Preparing</button>
+                                </form>
+                                {% elif order.status == 'preparing' %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}">
+                                    <button type="submit" name="status" value="ready" class="action-btn ready">Mark Ready</button>
+                                </form>
+                                {% elif order.status == 'ready' %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}">
+                                    <button type="submit" name="status" value="completed" class="action-btn complete">Complete Order</button>
+                                </form>
+                                {% endif %}
+                                {% if order.status not in ['completed', 'cancelled'] %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}">
+                                    <button type="submit" name="status" value="cancelled" class="action-btn cancel">Cancel</button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                                <path d="M12 11v6M9 14h6"/>
+                            </svg>
+                        </div>
+                        <span class="empty-text">No active orders</span>
+                        <span class="empty-sub">New orders will appear here</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Revenue Chart -->
+            <section class="card card-revenue">
+                <div class="card-header">
+                    <h2 class="card-title">Revenue</h2>
+                    <span class="card-period">Last 7 days</span>
+                </div>
+                <div class="revenue-chart">
+                    {% set max_rev = analytics.daily_revenue|map(attribute='revenue')|max or 1 %}
+                    {% for day in analytics.daily_revenue %}
+                    <div class="chart-bar-wrap">
+                        <div class="chart-bar" style="height: {{ (day.revenue / max_rev * 100) if max_rev > 0 else 0 }}%">
+                            <span class="chart-tooltip">${{ "%.0f"|format(day.revenue) }}</span>
+                        </div>
+                        <span class="chart-label">{{ day.date }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Team Status -->
+            <section class="card card-team">
+                <div class="card-header">
+                    <h2 class="card-title">Team</h2>
+                    <span class="team-online">{{ active_staff|length }} on shift</span>
+                </div>
+                <div class="team-list">
+                    {% for clock in active_staff %}
+                    <div class="team-member">
+                        <div class="member-avatar">{{ (clock.user.name or clock.user.email)[0]|upper }}</div>
+                        <div class="member-info">
+                            <span class="member-name">{{ clock.user.name or clock.user.email.split('@')[0] }}</span>
+                            <span class="member-meta">{{ clock.user.role|title }} · {{ "%.1f"|format(clock.hours_worked) }}h today</span>
+                        </div>
+                        <span class="member-status online"></span>
+                    </div>
+                    {% else %}
+                    <div class="empty-state small">
+                        <span class="empty-text">No one on shift</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if today_clocks %}
+                <div class="team-activity">
+                    <span class="activity-label">Today's activity</span>
+                    {% for clock in today_clocks[:4] %}
+                    <div class="activity-item">
+                        <span class="activity-name">{{ clock.user.name or clock.user.email.split('@')[0] }}</span>
+                        <span class="activity-time">
+                            {{ clock.clock_in.strftime('%H:%M') }}{% if clock.clock_out %} — {{ clock.clock_out.strftime('%H:%M') }}{% else %} — now{% endif %}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Top Products -->
+            <section class="card card-products">
+                <div class="card-header">
+                    <h2 class="card-title">Top Products</h2>
+                    <span class="card-period">30 days</span>
+                </div>
+                <div class="products-list">
+                    {% for item, qty in analytics.top_items %}
+                    <div class="product-item">
+                        <span class="product-rank">{{ loop.index }}</span>
+                        <span class="product-name">{{ item }}</span>
+                        <span class="product-sold">{{ qty }}</span>
+                    </div>
+                    {% else %}
+                    <div class="empty-state small">
+                        <span class="empty-text">No data yet</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+        </div>
+
+        <!-- Orders Table -->
+        <section class="card card-table">
+            <div class="card-header">
+                <h2 class="card-title">All Orders</h2>
+                <div class="table-filters">
+                    <button class="filter-chip active" data-status="all">All</button>
+                    <button class="filter-chip" data-status="paid">New</button>
+                    <button class="filter-chip" data-status="preparing">Preparing</button>
+                    <button class="filter-chip" data-status="ready">Ready</button>
+                    <button class="filter-chip" data-status="completed">Completed</button>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Customer</th>
+                            <th>Items</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr data-status="{{ order.status }}">
+                            <td class="cell-order">{{ order.order_number }}</td>
+                            <td class="cell-customer">
+                                <span class="customer-name">{{ order.customer_name }}</span>
+                                {% if order.customer_phone %}<span class="customer-phone">{{ order.customer_phone }}</span>{% endif %}
+                            </td>
+                            <td class="cell-items">
+                                {% for item in order.items[:2] %}{{ item.quantity }}× {{ item.name[:20] }}{% if not loop.last %}, {% endif %}{% endfor %}{% if order.items|length > 2 %} +{{ order.items|length - 2 }}{% endif %}
+                            </td>
+                            <td class="cell-amount">${{ "%.2f"|format(order.total) }}</td>
+                            <td class="cell-status">
+                                <span class="status-tag {{ order.status }}">{{ order.status }}</span>
+                            </td>
+                            <td class="cell-time">{{ order.created_at.strftime('%H:%M') }}</td>
+                            <td class="cell-actions">
+                                {% if order.status not in ['completed', 'cancelled'] %}
+                                {% if order.status in ['pending', 'paid'] %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" class="inline">
+                                    <button type="submit" name="status" value="preparing" class="table-action">Prepare</button>
+                                </form>
+                                {% elif order.status == 'preparing' %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" class="inline">
+                                    <button type="submit" name="status" value="ready" class="table-action">Ready</button>
+                                </form>
+                                {% elif order.status == 'ready' %}
+                                <form method="POST" action="{{ url_for('manager.update_order_status', order_id=order.id) }}" class="inline">
+                                    <button type="submit" name="status" value="completed" class="table-action">Done</button>
+                                </form>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
 </div>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap');
+
+:root {
+    --bg-primary: #09090b;
+    --bg-secondary: #18181b;
+    --bg-tertiary: #27272a;
+    --bg-hover: #3f3f46;
+    --border: #27272a;
+    --border-light: #3f3f46;
+    --text-primary: #fafafa;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
+    --accent: #f43f5e;
+    --accent-hover: #e11d48;
+    --success: #22c55e;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============ LAYOUT ============ */
+.dash-app {
+    display: flex;
+    min-height: 100vh;
+}
+
+/* ============ SIDEBAR ============ */
+.dash-sidebar {
+    width: 240px;
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    height: 100vh;
+    z-index: 100;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.brand-mark {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--accent) 0%, #fb7185 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: -0.5px;
+}
+
+.brand-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.brand-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Navigation */
+.dash-nav {
+    flex: 1;
+    padding: 16px 12px;
+    overflow-y: auto;
+}
+
+.nav-section {
+    margin-bottom: 24px;
+}
+
+.nav-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0 8px;
+    margin-bottom: 8px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    margin-bottom: 2px;
+}
+
+.nav-link:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.nav-link.active {
+    background: var(--accent);
+    color: white;
+}
+
+.nav-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.nav-count {
+    margin-left: auto;
+    background: var(--bg-tertiary);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.nav-link.active .nav-count {
+    background: rgba(255,255,255,0.2);
+}
+
+.nav-count.active {
+    background: var(--success);
+    color: white;
+}
+
+/* Clock Module */
+.clock-module {
+    margin: 0 12px 16px;
+    padding: 16px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+}
+
+.clock-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.clock-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.clock-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+}
+
+.clock-indicator.on {
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+}
+
+.clock-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 12px;
+}
+
+.clock-status {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.clock-status.off {
+    color: var(--text-muted);
+}
+
+.clock-duration {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--success);
+}
+
+.clock-btn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.clock-btn.in {
+    background: var(--success);
+    color: white;
+}
+
+.clock-btn.in:hover {
+    background: #16a34a;
+}
+
+.clock-btn.out {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+    border: 1px solid var(--border-light);
+}
+
+.clock-btn.out:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+/* User Module */
+.user-module {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+}
+
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-tertiary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.user-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.user-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.user-role {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.user-logout {
+    color: var(--text-muted);
+    padding: 6px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+}
+
+.user-logout:hover {
+    color: var(--accent);
+    background: var(--bg-tertiary);
+}
+
+.user-logout svg {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+/* ============ MAIN CONTENT ============ */
+.dash-main {
+    flex: 1;
+    margin-left: 240px;
+    padding: 24px 32px;
+    background: var(--bg-primary);
+    min-height: 100vh;
+}
+
+/* Top Bar */
+.dash-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.page-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.page-date {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.topbar-right {
+    display: flex;
+    gap: 12px;
+}
+
+.topbar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border: none;
+}
+
+.topbar-btn.secondary {
+    background: var(--bg-secondary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border);
+}
+
+.topbar-btn.secondary:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.topbar-btn.primary {
+    background: var(--accent);
+    color: white;
+}
+
+.topbar-btn.primary:hover {
+    background: var(--accent-hover);
+}
+
+/* ============ METRICS ============ */
+.metrics-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.metric-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.metric-card.highlight {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(244, 63, 94, 0.1) 0%, transparent 100%);
+}
+
+.metric-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.metric-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.metric-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.metric-badge.up {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+}
+
+.pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4); }
+    50% { opacity: 0.8; box-shadow: 0 0 0 8px rgba(244, 63, 94, 0); }
+}
+
+.metric-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+}
+
+.metric-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* ============ GRID ============ */
+.dash-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    grid-template-rows: auto auto;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+/* Cards */
+.card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.card-period {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Orders Card */
+.card-orders {
+    grid-row: span 2;
+}
+
+.card-tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--bg-tertiary);
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.tab-btn {
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.orders-list {
+    padding: 12px;
+    max-height: 480px;
+    overflow-y: auto;
+}
+
+.order-item {
+    display: flex;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.order-status-bar {
+    width: 4px;
+    flex-shrink: 0;
+}
+
+.order-status-bar.status-paid { background: var(--warning); }
+.order-status-bar.status-preparing { background: var(--info); }
+.order-status-bar.status-ready { background: var(--success); }
+
+.order-content {
+    flex: 1;
+    padding: 14px;
+}
+
+.order-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.order-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.order-time {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.order-name {
+    font-weight: 500;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.order-amount {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.order-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 10px 0 12px;
+}
+
+.item-tag {
+    font-size: 11px;
+    padding: 4px 8px;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    color: var(--text-secondary);
+}
+
+.order-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.action-btn.prepare {
+    background: var(--warning);
+    color: #000;
+}
+
+.action-btn.ready {
+    background: var(--info);
+    color: white;
+}
+
+.action-btn.complete {
+    background: var(--success);
+    color: white;
+}
+
+.action-btn.cancel {
+    background: transparent;
+    border: 1px solid var(--border-light);
+    color: var(--text-muted);
+}
+
+.action-btn.cancel:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 48px 24px;
+}
+
+.empty-state.small {
+    padding: 24px;
+}
+
+.empty-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 16px;
+    color: var(--text-muted);
+}
+
+.empty-icon svg {
+    width: 100%;
+    height: 100%;
+}
+
+.empty-text {
+    display: block;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.empty-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Revenue Card */
+.card-revenue {
+    display: flex;
+    flex-direction: column;
+}
+
+.revenue-chart {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 20px;
+    min-height: 160px;
+}
+
+.chart-bar-wrap {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 120px;
+}
+
+.chart-bar {
+    width: 100%;
+    max-width: 32px;
+    background: linear-gradient(180deg, var(--accent) 0%, rgba(244, 63, 94, 0.4) 100%);
+    border-radius: 4px 4px 0 0;
+    min-height: 4px;
+    position: relative;
+    transition: all 0.3s ease;
+    margin-top: auto;
+}
+
+.chart-bar:hover {
+    background: var(--accent);
+}
+
+.chart-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    white-space: nowrap;
+}
+
+.chart-bar:hover .chart-tooltip {
+    opacity: 1;
+}
+
+.chart-label {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* Team Card */
+.team-online {
+    font-size: 12px;
+    color: var(--success);
+    font-weight: 500;
+}
+
+.team-list {
+    padding: 12px 16px;
+}
+
+.team-member {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+}
+
+.team-member:last-child {
+    border-bottom: none;
+}
+
+.member-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 11px;
+    color: white;
+}
+
+.member-info {
+    flex: 1;
+}
+
+.member-name {
+    display: block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.member-meta {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.member-status {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-muted);
+}
+
+.member-status.online {
+    background: var(--success);
+}
+
+.team-activity {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-tertiary);
+}
+
+.activity-label {
+    display: block;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+}
+
+.activity-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.activity-name {
+    color: var(--text-secondary);
+}
+
+.activity-time {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    font-size: 11px;
+}
+
+/* Products Card */
+.card-products {
+    grid-column: span 2;
+}
+
+.products-list {
+    padding: 16px 20px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.product-item {
+    background: var(--bg-tertiary);
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.product-rank {
+    display: block;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.product-name {
+    display: block;
+    font-size: 12px;
+    color: var(--text-primary);
+    font-weight: 500;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.product-sold {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+/* ============ TABLE ============ */
+.card-table {
+    overflow: visible;
+}
+
+.table-filters {
+    display: flex;
+    gap: 6px;
+}
+
+.filter-chip {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.filter-chip:hover {
+    border-color: var(--text-muted);
+    color: var(--text-secondary);
+}
+
+.filter-chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+}
+
+.data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+}
+
+.data-table tr:hover {
+    background: var(--bg-tertiary);
+}
+
+.cell-order {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+}
+
+.cell-customer {
+    display: flex;
+    flex-direction: column;
+}
+
+.customer-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.customer-phone {
+    font-size: 11px;
+    color: var(--text-muted);
+}
+
+.cell-items {
+    font-size: 12px;
+    color: var(--text-secondary);
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.cell-amount {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.cell-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.status-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.status-tag.paid { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.status-tag.preparing { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+.status-tag.ready { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+.status-tag.completed { background: rgba(161, 161, 170, 0.15); color: var(--text-secondary); }
+.status-tag.cancelled { background: rgba(244, 63, 94, 0.15); color: var(--accent); }
+
+.inline {
+    display: inline;
+}
+
+.table-action {
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 500;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.table-action:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+/* ============ SCROLLBAR ============ */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-light);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ============ RESPONSIVE ============ */
+@media (max-width: 1400px) {
+    .products-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 1200px) {
+    .dash-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .card-orders {
+        grid-column: span 2;
+        grid-row: auto;
+    }
+    
+    .metrics-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dash-sidebar {
+        display: none;
+    }
+    
+    .dash-main {
+        margin-left: 0;
+        padding: 16px;
+    }
+    
+    .dash-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-products {
+        grid-column: 1;
+    }
+    
+    .products-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+
+<script>
+// Filter table
+document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        
+        const status = this.dataset.status;
+        document.querySelectorAll('.data-table tbody tr').forEach(row => {
+            row.style.display = (status === 'all' || row.dataset.status === status) ? '' : 'none';
+        });
+    });
+});
+
+// Auto-refresh
+setTimeout(() => location.reload(), 30000);
+</script>
 {% endblock %}

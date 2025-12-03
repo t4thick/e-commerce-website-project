@@ -33,8 +33,22 @@
             <p style="font-size: 1.5rem; font-weight: 700; color: var(--dark);">{{ order.order_number }}</p>
         </div>
         
-        <p style="color: var(--gray); margin-bottom: 0.5rem;">We'll notify you when your order is ready for pickup.</p>
-        <p style="color: var(--red); font-weight: 600; margin-bottom: 2rem;">Estimated wait: 10-15 mins</p>
+        <!-- Real-time tracking preview -->
+        <div style="background: #fef3c7; border: 1px solid #f59e0b; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <span style="display: inline-block; width: 8px; height: 8px; background: #f59e0b; border-radius: 50%; animation: pulse 1s infinite;"></span>
+                <span style="font-weight: 600; color: #92400e;">Live Tracking</span>
+            </div>
+            <p style="font-size: 0.875rem; color: #92400e; margin-bottom: 0;">Status: <strong id="liveStatus">{{ order.status|title }}</strong></p>
+            <p style="font-size: 0.75rem; color: #b45309; margin-top: 0.25rem;">Elapsed: <span id="elapsedTime">00:00</span></p>
+        </div>
+        
+        <p style="color: var(--gray); margin-bottom: 0.5rem;">Track your order in real-time!</p>
+        <p style="color: var(--red); font-weight: 600; margin-bottom: 1.5rem;">Estimated wait: {{ order.estimated_ready_minutes or 15 }} mins</p>
+        
+        <a href="{{ url_for('cart.track_order_page', order_number=order.order_number) }}" class="btn btn-red" style="width: 100%; margin-bottom: 1rem;">
+            📍 Track Order Live
+        </a>
         
         <div style="display: flex; gap: 1rem;">
             <a href="{{ url_for('main.home') }}" class="btn btn-outline-red" style="flex: 1;">Back to Home</a>
@@ -42,4 +56,43 @@
         </div>
     </div>
 </div>
+
+<style>
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.2); }
+}
+</style>
+
+<script>
+const orderId = {{ order.id }};
+const orderCreatedAt = new Date('{{ order.created_at.isoformat() }}');
+
+// Update elapsed time
+function updateElapsedTime() {
+    const now = new Date();
+    const elapsed = Math.floor((now - orderCreatedAt) / 1000);
+    const minutes = Math.floor(elapsed / 60);
+    const seconds = elapsed % 60;
+    document.getElementById('elapsedTime').textContent = 
+        `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Fetch status updates
+async function fetchStatus() {
+    try {
+        const response = await fetch(`/api/track/${orderId}`);
+        const data = await response.json();
+        document.getElementById('liveStatus').textContent = 
+            data.status.charAt(0).toUpperCase() + data.status.slice(1);
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+updateElapsedTime();
+setInterval(updateElapsedTime, 1000);
+fetchStatus();
+setInterval(fetchStatus, 5000);
+</script>
 {% endblock %}

@@ -862,6 +862,66 @@ img {
     to { transform: translateX(0); opacity: 1; }
 }
 
+/* ============ PROMO STYLES ============ */
+.promo-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, #ff6b6b, var(--red));
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+
+.promo-stats {
+    display: flex;
+    gap: 2rem;
+    margin: 1.5rem 0;
+}
+
+.stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-number {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--red);
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.8);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.promo-note {
+    background: rgba(255,255,255,0.1);
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    font-style: italic;
+    font-size: 0.875rem;
+    border-left: 3px solid var(--red);
+}
+
+.auth-info-content ul li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+}
+
 /* ============ RESPONSIVE ============ */
 @media (max-width: 768px) {
     .hero-inner {

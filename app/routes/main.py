@@ -1,13 +1,17 @@
+import logging
 from flask import Blueprint, render_template, request, session
 from flask_login import current_user
 from datetime import datetime
 from app.models import MenuItem, User, Order
+
+logger = logging.getLogger(__name__)
 
 main_bp = Blueprint('main', __name__)
 
 
 @main_bp.route('/')
 def home():
+    logger.debug('Home page accessed')
     menu_items = MenuItem.query.filter_by(available=True).all()
     popular_items = MenuItem.query.filter_by(popular=True, available=True).limit(3).all()
     staff_count = User.query.filter(User.role.in_(['staff', 'manager', 'admin'])).count()
@@ -16,6 +20,8 @@ def home():
     cart = session.get('cart', [])
     cart_count = sum(item['quantity'] for item in cart)
 
+    logger.info(f'Home page loaded - {len(menu_items)} items, {order_count} orders today')
+    
     return render_template(
         'home.html',
         menu_items=menu_items,
